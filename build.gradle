@@ -60,19 +60,33 @@ dependencies {
     compile 'ch.qos.logback:logback-classic:1.2.+'
 
     // Use JUnit test framework
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.+'
 }
 
 // Define the main class for the application
 mainClassName = 'de.clockify.java.api.ClockifyJavaAPI'
 
-test {
-    useTestNG()
-    scanForTestClasses = true
-//    options {
-//        suites("src/test/resources/testng.xml")
-//        listeners << 'org.uncommons.reporting.HTMLReporter'
-//        listeners << 'org.uncommons.reporting.JUnitXMLReporter'
-//        useDefaultListeners = false
-//    }
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
 }
+
+//test {
+//    useTestNG()
+//    scanForTestClasses = true
+////    options {
+////        suites("src/test/resources/testng.xml")
+////        listeners << 'org.uncommons.reporting.HTMLReporter'
+////        listeners << 'org.uncommons.reporting.JUnitXMLReporter'
+////        useDefaultListeners = false
+////    }
+//}
