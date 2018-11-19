@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.clockify.java.api.ClockifyJavaAPI;
+import de.clockify.java.api.objects.workspace.CreateWorkspaceRequest;
 import de.clockify.java.api.objects.workspace.UpdateWorkspaceRequest;
 import de.clockify.java.api.objects.workspace.WorkspaceDTO;
 
@@ -81,7 +82,48 @@ public class ReSTBackend implements ClockifyBackend
     @Override
     public WorkspaceDTO addNewWorkspace(String name)
     {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        log.debug("Create new workspace '{}'...", name);
+
+        CreateWorkspaceRequest requestObject = new CreateWorkspaceRequest(name);
+
+        Response response = client.target(getBackendURL()) //
+                .path("workspaces") //
+                .request() //
+                .header("X-Api-Key", ClockifyJavaAPI.API_KEY)
+                .post(Entity.json(requestObject));
+
+        log.trace("Response status: {}", response.getStatus());
+
+        if (response != null && response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+        {
+            WorkspaceDTO workspace = response.readEntity(WorkspaceDTO.class);
+
+            log.trace("Workspace created: {}", workspace);
+            return workspace;
+        }
+        if (response != null && response.getStatus() == 401) //Unauthorized
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            throw new NotAuthorizedException("Wrong X-Api-Key handed!");
+        }
+        if (response != null && response.getStatus() == 403) //Forbidden
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            throw new ForbiddenException("Missing permimssions for current action!");
+        }
+        if (response != null && response.getStatus() == 404) //Not Found
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            throw new NotFoundException("Resource could not be found!");
+        }
+        if (response != null) //Else
+        {
+            log.error("Unhandled Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            throw new RuntimeException("Unhandled Error " + response.getStatus() + " in ReST call: " + response.readEntity(String.class));
+        }
+
+        log.error("Unhandled Error in ReST call.");
+        throw new RuntimeException("Unhandled Error in ReST call.");
     }
 
     @Override
