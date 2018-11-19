@@ -47,11 +47,11 @@ public class ReSTBackend implements ClockifyBackend
 
         if (response != null && response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
         {
-            List<WorkspaceDTO> topics = response.readEntity(List.class);
+            List<WorkspaceDTO> workspaces = response.readEntity(List.class);
 
-            log.debug("Retrieved workspace dtos: {}", topics.size());
-            log.trace("Retrieved workspace dtos: {}", topics);
-            return topics;
+            log.debug("Retrieved workspace dtos: {}", workspaces.size());
+            log.trace("Retrieved workspace dtos: {}", workspaces);
+            return workspaces;
         }
         if (response != null && response.getStatus() == 401) //Unauthorized
         {
