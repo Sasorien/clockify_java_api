@@ -41,7 +41,7 @@ public class ReSTBackend implements ClockifyBackend
         Response response = client.target(getBackendURL()) //
                 .path("workspaces") //
                 .request() //
-                .header("X-Api-Key", ClockifyJavaAPI.API_KEY)
+                .header("X-Api-Key", getAPIKey())
                 .get();
 
         log.trace("Response status: {}", response.getStatus());
@@ -54,29 +54,8 @@ public class ReSTBackend implements ClockifyBackend
             log.trace("Retrieved workspace dtos: {}", workspaces);
             return workspaces;
         }
-        if (response != null && response.getStatus() == 401) //Unauthorized
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new NotAuthorizedException("Wrong X-Api-Key handed!");
-        }
-        if (response != null && response.getStatus() == 403) //Forbidden
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new ForbiddenException("Missing permimssions for current action!");
-        }
-        if (response != null && response.getStatus() == 404) //Not Found
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new NotFoundException("Resource could not be found!");
-        }
-        if (response != null) //Else
-        {
-            log.error("Unhandled Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new RuntimeException("Unhandled Error " + response.getStatus() + " in ReST call: " + response.readEntity(String.class));
-        }
 
-        log.error("Unhandled Error in ReST call.");
-        throw new RuntimeException("Unhandled Error in ReST call.");
+        throw retrieveExceptionForResponseError(response);
     }
 
     @Override
@@ -89,7 +68,7 @@ public class ReSTBackend implements ClockifyBackend
         Response response = client.target(getBackendURL()) //
                 .path("workspaces") //
                 .request() //
-                .header("X-Api-Key", ClockifyJavaAPI.API_KEY)
+                .header("X-Api-Key", getAPIKey())
                 .post(Entity.json(requestObject));
 
         log.trace("Response status: {}", response.getStatus());
@@ -101,29 +80,8 @@ public class ReSTBackend implements ClockifyBackend
             log.trace("Workspace created: {}", workspace);
             return workspace;
         }
-        if (response != null && response.getStatus() == 401) //Unauthorized
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new NotAuthorizedException("Wrong X-Api-Key handed!");
-        }
-        if (response != null && response.getStatus() == 403) //Forbidden
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new ForbiddenException("Missing permimssions for current action!");
-        }
-        if (response != null && response.getStatus() == 404) //Not Found
-        {
-            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new NotFoundException("Resource could not be found!");
-        }
-        if (response != null) //Else
-        {
-            log.error("Unhandled Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
-            throw new RuntimeException("Unhandled Error " + response.getStatus() + " in ReST call: " + response.readEntity(String.class));
-        }
 
-        log.error("Unhandled Error in ReST call.");
-        throw new RuntimeException("Unhandled Error in ReST call.");
+        throw retrieveExceptionForResponseError(response);
     }
 
     @Override
@@ -144,8 +102,42 @@ public class ReSTBackend implements ClockifyBackend
         throw new UnsupportedOperationException("Not implemented yet!");
     }
 
+    //TODO Work through the API documentation: https://clockify.github.io/clockify_api_docs/
+
+    private RuntimeException retrieveExceptionForResponseError(Response response)
+    {
+        if (response != null && response.getStatus() == 401) //Unauthorized
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            return new NotAuthorizedException("Wrong X-Api-Key handed!");
+        }
+        if (response != null && response.getStatus() == 403) //Forbidden
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            return new ForbiddenException("Missing permimssions for current action!");
+        }
+        if (response != null && response.getStatus() == 404) //Not Found
+        {
+            log.error("Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            return new NotFoundException("Resource could not be found!");
+        }
+        if (response != null) //Else
+        {
+            log.error("Unhandled Error {} in ReST call: {}", response.getStatus(), response.readEntity(String.class));
+            return new RuntimeException("Unhandled Error " + response.getStatus() + " in ReST call: " + response.readEntity(String.class));
+        }
+
+        log.error("Unhandled Error in ReST call.");
+        return new RuntimeException("Unhandled Error in ReST call.");
+    }
+
     private String getBackendURL()
     {
         return "TODO";
+    }
+
+    private String getAPIKey()
+    {
+        return ClockifyJavaAPI.API_KEY;
     }
 }
